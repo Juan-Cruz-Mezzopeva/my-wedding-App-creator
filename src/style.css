@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta de colores personalizada para la boda */
+  --color-gray-sage: #3F2512;
+  --color-silver-mist: #dddee3;
+  --color-cream-beige: #e5e1d5;
+  --color-warm-taupe: #3F2512;
+  --color-dark-espresso: #382f25;
+  --color-espresso-terracota: #382f25;
+
+  /* Fuentes personalizadas */
+  --font-family-serif: 'Playfair Display', serif;
+  --font-family-sans: 'Montserrat', sans-serif;
+
+  /* Animaciones personalizadas */
+  --animate-fade-in: fade-in 0.8s ease-out;
+  --animate-scale-in: scale-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+  --animate-slide-down: slide-down 0.5s ease-out;
+
+  /* Keyframes */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scale-in {
+    from {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* Estilos base */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
