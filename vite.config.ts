@@ -14,6 +14,13 @@ import { resolve } from 'node:path'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const couple = process.env.COUPLE || env.COUPLE || 'ejemplo'
+
+  // En Netlify/Vercel, COUPLE es obligatoria: sin ella se publicaría la pareja
+  // de ejemplo por error.
+  const isHosting = Boolean(process.env.NETLIFY || process.env.VERCEL)
+  if (isHosting && !process.env.COUPLE) {
+    throw new Error('Falta la variable de entorno COUPLE (ej: juan-y-flavia) en la configuración del sitio')
+  }
   const coupleDir = resolve(__dirname, 'couples', couple)
 
   if (!existsSync(resolve(coupleDir, 'config.ts'))) {

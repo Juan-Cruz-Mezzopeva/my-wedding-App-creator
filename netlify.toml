@@ -1,0 +1,10 @@
+# Configuración de Netlify (vale para todos los sitios que usen este repo).
+# La pareja NO se define acá: cada sitio de Netlify tiene su propia variable
+# de entorno COUPLE (Site configuration > Environment variables).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
