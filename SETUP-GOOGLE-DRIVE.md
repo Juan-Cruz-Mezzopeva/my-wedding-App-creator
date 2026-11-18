@@ -31,7 +31,7 @@ ID de carpeta: 1kF7mN9pQ2rS3tU4vW5xY6zA7bC8dE9fG0h
 2. Haz clic en **"Nuevo proyecto"**
 3. Dale un nombre: **"Wedding Photos Upload API"**
 4. Borra todo el código que aparece por defecto
-5. Abre el archivo `google-photos-upload-script.js` de tu proyecto
+5. Abre el archivo `google-apps-script/fotos-drive.gs` de tu proyecto
 6. **Copia TODO el código** de ese archivo
 7. **Pégalo** en el editor de Google Apps Script
 
@@ -110,7 +110,7 @@ Si ves estos mensajes, ¡el script está configurado correctamente!
 
 ## 📋 Paso 6: Configurar la Aplicación React
 
-Abrí `src/config/wedding.ts` y completá la sección `photoUpload`:
+Abrí `couples/<pareja>/config.ts` y completá la sección `photoUpload`:
 
 ```ts
 photoUpload: {
@@ -196,7 +196,7 @@ Tu funcionalidad de upload de fotos está completamente configurada. Ahora los i
 4. Autoriza nuevamente los permisos
 
 ### No se suben los archivos
-**Causa:** La URL `photoUpload.scriptUrl` en `src/config/wedding.ts` no es correcta.
+**Causa:** La URL `photoUpload.scriptUrl` en `couples/<pareja>/config.ts` no es correcta.
 **Solución:** Verifica que la URL en el Paso 6.1 termine en `/exec` y no contenga espacios.
 
 ### Los emails no llegan

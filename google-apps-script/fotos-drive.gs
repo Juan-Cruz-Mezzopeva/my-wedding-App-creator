@@ -13,7 +13,7 @@
 // 7. Configura:
 //    - Ejecutar como: Yo (tu email)
 //    - Acceso: Cualquiera
-// 8. Copia la URL de la aplicación web y pegala en photoUpload.scriptUrl de src/config/wedding.ts
+// 8. Copia la URL de la aplicación web y pegala en photoUpload.scriptUrl de couples/<pareja>/config.ts
 //
 // ============================================
 

@@ -17,6 +17,9 @@
     /* JSX */
     "jsx": "react-jsx",
 
+    /* Config de la pareja: Vite la resuelve según COUPLE; para tipos alcanza con la de ejemplo */
+    "paths": { "@couple": ["./couples/ejemplo/config.ts"] },
+
     /* Linting */
     "strict": false,
     "noUnusedLocals": false,
@@ -32,5 +35,5 @@
     "noFallthroughCasesInSwitch": false,
     "noUncheckedSideEffectImports": false
   },
-  "include": ["src"]
+  "include": ["src", "couples"]
 }

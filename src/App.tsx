@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useRef,
   type ChangeEvent,
   type FormEvent,
 } from "react";
@@ -15,8 +16,11 @@ import {
   Gift,
   Camera,
   Wallet,
+  Hotel,
+  Music,
+  VolumeX,
 } from "lucide-react";
-import wedding from "./config/wedding";
+import wedding from "@couple";
 import type { BankData } from "./config/types";
 
 // ============================================
@@ -36,6 +40,8 @@ interface FormData {
   telefono: string;
   asistencia: "si" | "no" | "talvez";
   numeroAcompanantes: string;
+  /** Nombres de los acompañantes, uno por posición */
+  nombresAcompanantes: string[];
   alergias: string;
   dietaEspecial: "ninguna" | "vegetariano" | "vegano" | "sinGluten" | "otra";
   mensaje: string;
@@ -53,7 +59,9 @@ interface CountdownItem {
   label: string;
 }
 
-interface DataToSend extends FormData {
+interface DataToSend extends Omit<FormData, "nombresAcompanantes"> {
+  /** Nombres de los acompañantes separados por coma */
+  nombresAcompanantes: string;
   fecha: string;
   timestamp: string;
 }
@@ -83,6 +91,7 @@ const EMPTY_FORM: FormData = {
   telefono: "",
   asistencia: "si",
   numeroAcompanantes: "0",
+  nombresAcompanantes: [],
   alergias: "",
   dietaEspecial: "ninguna",
   mensaje: "",
@@ -152,7 +161,7 @@ function BankDetails({ data }: { data: BankData }): React.JSX.Element {
 
 export default function App(): React.JSX.Element {
   // ============================================
-  // CONFIGURACIÓN (todo sale de src/config/wedding.ts)
+  // CONFIGURACIÓN (todo sale de couples/<pareja>/config.ts, ver vite.config.ts)
   // ============================================
 
   const { media, sections } = wedding;
@@ -172,6 +181,10 @@ export default function App(): React.JSX.Element {
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [fadeOut, setFadeOut] = useState<boolean>(false);
   const [videoEnded, setVideoEnded] = useState<boolean>(!hasVideo);
+
+  // Música de fondo
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [musicPlaying, setMusicPlaying] = useState<boolean>(false);
 
   // Modal RSVP
   const [showRSVPModal, setShowRSVPModal] = useState<boolean>(false);
@@ -212,6 +225,7 @@ export default function App(): React.JSX.Element {
   const pricesVisible = useInView("prices-section", [videoEnded]);
   const dressCodeVisible = useInView("dress-code", [videoEnded]);
   const giftsVisible = useInView("gifts-section", [videoEnded]);
+  const lodgingVisible = useInView("lodging-section", [videoEnded]);
   const photosVisible = useInView("photos-section", [videoEnded]);
 
   const HERO_BACKGROUND_IMAGE: string = isMobile
@@ -231,6 +245,7 @@ export default function App(): React.JSX.Element {
     root.setProperty("--color-cream-beige", wedding.theme.light);
     root.setProperty("--color-silver-mist", wedding.theme.mist);
     root.setProperty("--color-gray-sage", wedding.theme.muted);
+    root.setProperty("--color-accent", wedding.theme.accent);
   }, []);
 
   // Countdown timer
@@ -334,8 +349,32 @@ export default function App(): React.JSX.Element {
   // FUNCIONES
   // ============================================
 
+  // Los navegadores solo dejan reproducir audio después de un toque del
+  // usuario: por eso la música arranca desde el click del splash.
+  const playMusic = (): void => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio
+      .play()
+      .then(() => setMusicPlaying(true))
+      .catch(() => setMusicPlaying(false));
+  };
+
+  const toggleMusic = (): void => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      playMusic();
+    } else {
+      audio.pause();
+      setMusicPlaying(false);
+    }
+  };
+
   const handleSplashClick = (): void => {
     setFadeOut(true);
+    // Si hay video, la música espera a que termine (para no superponerse)
+    if (!hasVideo) playMusic();
     setTimeout(() => {
       setShowSplash(false);
     }, 800); // Espera a que termine la animación
@@ -343,6 +382,7 @@ export default function App(): React.JSX.Element {
 
   const handleVideoEnd = (): void => {
     setVideoEnded(true);
+    playMusic();
   };
 
   const openRSVPModal = (): void => {
@@ -363,6 +403,14 @@ export default function App(): React.JSX.Element {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleCompanionNameChange = (index: number, value: string): void => {
+    setFormData((prev) => {
+      const nombres = [...prev.nombresAcompanantes];
+      nombres[index] = value;
+      return { ...prev, nombresAcompanantes: nombres };
+    });
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -397,8 +445,14 @@ export default function App(): React.JSX.Element {
     });
 
     try {
+      const companions = Number(formData.numeroAcompanantes);
       const dataToSend: DataToSend = {
         ...formData,
+        nombresAcompanantes: formData.nombresAcompanantes
+          .slice(0, companions)
+          .map((n) => (n || "").trim())
+          .filter(Boolean)
+          .join(", "),
         fecha: new Date().toLocaleString("es-AR", {
           timeZone: "America/Argentina/Buenos_Aires",
           year: "numeric",
@@ -413,17 +467,17 @@ export default function App(): React.JSX.Element {
 
       console.log("Enviando datos:", dataToSend);
 
-      await fetch(wedding.rsvp.scriptUrl, {
+      // Se manda como texto plano (sin headers) para que sea un "simple
+      // request": así Apps Script responde con CORS y podemos leer si el
+      // guardado salió bien, en vez de asumirlo.
+      const response = await fetch(wedding.rsvp.scriptUrl, {
         method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(dataToSend),
       });
-
-      // Con mode: 'no-cors' no podemos leer la respuesta, pero si no hay error, asumimos que funcionó
-      console.log("Respuesta enviada correctamente");
+      const result = await response.json();
+      if (result.result !== "success") {
+        throw new Error(result.message || "Error al guardar la respuesta");
+      }
 
       setFormStatus({
         loading: false,
@@ -671,7 +725,7 @@ export default function App(): React.JSX.Element {
       {!isLoading && showSplash && (
         <div
           onClick={handleSplashClick}
-          className={`fixed inset-0 z-[100] bg-cover bg-center flex items-center justify-center cursor-pointer transition-opacity duration-800 ${
+          className={`fixed inset-0 z-[100] bg-dark-espresso bg-cover bg-center flex items-center justify-center cursor-pointer transition-opacity duration-800 ${
             fadeOut ? "opacity-0" : "opacity-100"
           }`}
           style={{
@@ -679,7 +733,15 @@ export default function App(): React.JSX.Element {
           }}
         >
           <div className="text-center px-4 animate-fade-in">
-            <div className="mb-8"></div>
+            {wedding.initials ? (
+              <div className="mx-auto mb-8 w-24 h-24 md:w-28 md:h-28 rounded-full border-2 border-accent flex items-center justify-center">
+                <span className="font-serif italic text-3xl md:text-4xl text-accent">
+                  {wedding.initials}
+                </span>
+              </div>
+            ) : (
+              <div className="mb-8"></div>
+            )}
             <h1 className="font-serif italic text-5xl md:text-7xl text-cream-beige mb-6">
               {novios}
             </h1>
@@ -741,7 +803,7 @@ export default function App(): React.JSX.Element {
           }}
         >
           <div className="container mx-auto px-4 text-center text-white">
-            <div className="text-3xl md:text-4xl mb-6 font-serif italic text-amber-200">
+            <div className="text-3xl md:text-4xl mb-6 font-serif italic text-accent">
               Nos Casamos
             </div>
 
@@ -843,7 +905,7 @@ export default function App(): React.JSX.Element {
 
                 <div className="my-8 flex justify-center">
                   <div
-                    className={`border-t-2 border-gray-sage ${dateTimeVisible ? "animate-expand-width" : "w-0"}`}
+                    className={`border-t-2 border-accent ${dateTimeVisible ? "animate-expand-width" : "w-0"}`}
                   />
                 </div>
 
@@ -881,9 +943,21 @@ export default function App(): React.JSX.Element {
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center text-dark-espresso space-y-4">
               {wedding.texts.quote && (
-                <p className="font-serif italic text-lg md:text-2xl">
-                  "{wedding.texts.quote}"
-                </p>
+                <div className="mb-10">
+                  <p className="font-serif italic text-lg md:text-2xl">
+                    "{wedding.texts.quote}"
+                  </p>
+                  {wedding.texts.quoteSource && (
+                    <p className="mt-2 text-sm md:text-base tracking-widest uppercase text-accent">
+                      {wedding.texts.quoteSource}
+                    </p>
+                  )}
+                </div>
+              )}
+              {wedding.texts.storyTitle && (
+                <h2 className="font-serif italic text-3xl md:text-5xl text-dark-espresso mb-6">
+                  {wedding.texts.storyTitle}
+                </h2>
               )}
               {wedding.texts.story.map((line, index) => (
                 <p key={index} className="text-lg md:text-2xl font-family-sans">
@@ -942,7 +1016,7 @@ export default function App(): React.JSX.Element {
 
                 <div className="my-8 flex justify-center">
                   <div
-                    className={`border-t-2 border-gray-sage ${locationVisible ? "animate-expand-width" : "w-0"}`}
+                    className={`border-t-2 border-accent ${locationVisible ? "animate-expand-width" : "w-0"}`}
                   />
                 </div>
 
@@ -1000,6 +1074,57 @@ export default function App(): React.JSX.Element {
             </div>
           </div>
         </section>
+
+        {/* Lodging Section - Opciones de hospedaje */}
+        {sections.lodging && wedding.lodging.options.length > 0 && (
+          <section className="py-16 md:py-24" id="lodging-section">
+            <div className="container mx-auto px-4">
+              <div className="max-w-3xl mx-auto text-center">
+                <Hotel
+                  className={`w-12 h-12 mx-auto text-warm-taupe mb-4 ${lodgingVisible ? "animate-fade-in" : "opacity-0"}`}
+                />
+                <h2
+                  className={`font-serif italic text-4xl md:text-6xl text-dark-espresso mb-8 ${lodgingVisible ? "animate-fade-in-up" : "opacity-0"}`}
+                >
+                  Hospedaje
+                </h2>
+                <div
+                  className={`bg-white rounded-2xl shadow-xl p-8 md:p-12 ${lodgingVisible ? "animate-fade-in-up-delayed" : "opacity-0"}`}
+                >
+                  <p className="text-lg text-dark-espresso mb-8">
+                    {wedding.lodging.intro}
+                  </p>
+                  <div className="space-y-4">
+                    {wedding.lodging.options.map((option, index) => (
+                      <a
+                        key={index}
+                        href={option.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-4 bg-cream-beige/30 hover:bg-cream-beige/60 rounded-xl p-5 text-left transition-all hover:scale-[1.02]"
+                      >
+                        <div>
+                          <p className="font-semibold text-dark-espresso">
+                            {option.name}
+                          </p>
+                          {option.description && (
+                            <p className="text-sm text-gray-sage mt-1">
+                              {option.description}
+                            </p>
+                          )}
+                        </div>
+                        <span className="flex items-center gap-1 text-sm font-medium text-warm-taupe whitespace-nowrap">
+                          <MapPin className="w-4 h-4" />
+                          Ver mapa
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Price Section  */}
         {sections.prices && (
@@ -1188,7 +1313,7 @@ export default function App(): React.JSX.Element {
 
                 <div className="my-8 flex justify-center">
                   <div
-                    className={`border-t-2 border-gray-sage ${dressCodeVisible ? "animate-expand-width" : "w-0"}`}
+                    className={`border-t-2 border-accent ${dressCodeVisible ? "animate-expand-width" : "w-0"}`}
                   />
                 </div>
 
@@ -1264,7 +1389,7 @@ export default function App(): React.JSX.Element {
 
                   <div className="my-8 flex justify-center">
                     <div
-                      className={`border-t-2 border-gray-sage ${giftsVisible ? "animate-expand-width" : "w-0"}`}
+                      className={`border-t-2 border-accent ${giftsVisible ? "animate-expand-width" : "w-0"}`}
                     />
                   </div>
 
@@ -1337,7 +1462,7 @@ export default function App(): React.JSX.Element {
 
                   <div className="my-8 flex justify-center">
                     <div
-                      className={`border-t-2 border-gray-sage ${photosVisible ? "animate-expand-width" : "w-0"}`}
+                      className={`border-t-2 border-accent ${photosVisible ? "animate-expand-width" : "w-0"}`}
                     />
                   </div>
 
@@ -1541,6 +1666,28 @@ export default function App(): React.JSX.Element {
       </div>
 
       {/* ============================================ */}
+      {/* MÚSICA DE FONDO */}
+      {/* ============================================ */}
+      {media.music && (
+        <>
+          <audio ref={audioRef} src={media.music} loop preload="auto" />
+          {!showSplash && videoEnded && (
+            <button
+              onClick={toggleMusic}
+              aria-label={musicPlaying ? "Pausar música" : "Reproducir música"}
+              className="fixed bottom-5 left-5 z-[90] w-12 h-12 rounded-full bg-warm-taupe/90 hover:bg-dark-espresso text-white shadow-lg flex items-center justify-center transition-all hover:scale-110"
+            >
+              {musicPlaying ? (
+                <Music className="w-5 h-5 animate-pulse" />
+              ) : (
+                <VolumeX className="w-5 h-5" />
+              )}
+            </button>
+          )}
+        </>
+      )}
+
+      {/* ============================================ */}
       {/* MODAL RSVP */}
       {/* ============================================ */}
       {showRSVPModal && (
@@ -1675,6 +1822,32 @@ export default function App(): React.JSX.Element {
                     ))}
                   </select>
                 </div>
+
+                {/* Nombres de los acompañantes */}
+                {wedding.rsvp.askCompanionNames &&
+                  Number(formData.numeroAcompanantes) > 0 && (
+                    <div className="space-y-3">
+                      <p className="block text-sm font-medium text-gray-700">
+                        Nombre de cada acompañante
+                      </p>
+                      {Array.from(
+                        { length: Number(formData.numeroAcompanantes) },
+                        (_, i) => i,
+                      ).map((i) => (
+                        <input
+                          key={i}
+                          type="text"
+                          aria-label={`Acompañante ${i + 1}`}
+                          value={formData.nombresAcompanantes[i] || ""}
+                          onChange={(e) =>
+                            handleCompanionNameChange(i, e.target.value)
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-warm-taupe focus:border-warm-taupe transition placeholder:text-gray-400 text-gray-900"
+                          placeholder={`Acompañante ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
 
                 {/* Alergias */}
                 <div>

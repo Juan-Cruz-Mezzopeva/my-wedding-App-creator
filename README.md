@@ -8,28 +8,50 @@ Basado en la invitación original de Flor & Juan (repo `my-wedding-app`), que qu
 
 React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · lucide-react · Google Apps Script (RSVP y subida de fotos)
 
+## Cómo funciona
+
+Cada pareja tiene su carpeta en `couples/`:
+
+```
+couples/
+├── ejemplo/              Pareja de ejemplo (plantilla para copiar)
+│   ├── config.ts         Todos los datos de la invitación
+│   └── public/           Imágenes, video y música de esa pareja
+└── juan-y-flavia/
+    ├── config.ts
+    └── public/
+```
+
+Qué pareja se muestra lo decide la variable `COUPLE`. Solo esa pareja entra al build, así que los datos de una pareja nunca aparecen en la invitación de otra.
+
 ## Cómo crear una invitación nueva
 
-1. **Completar `src/config/wedding.ts`** con los datos de la pareja: nombres, fecha, horarios, lugar, precios, dress code, regalos, textos y colores. Cada campo está documentado en `src/config/types.ts`.
-2. **Copiar las imágenes y el video a `public/`** con los nombres que pusiste en `media` (o cambiá los nombres en el config).
-3. **Configurar Google**:
-   - RSVP: crear una Google Sheet y su Apps Script, y pegar la URL `/exec` en `rsvp.scriptUrl`.
+1. **Copiar `couples/ejemplo/`** a `couples/<nombre-de-la-pareja>/`.
+2. **Completar `config.ts`** con los datos de la pareja: nombres, fecha, horarios, lugar, hospedaje, precios, dress code, regalos, textos y colores. Cada campo está documentado en `src/config/types.ts`.
+3. **Copiar imágenes, video y música a su `public/`** con los nombres que pusiste en `media`.
+4. **Configurar Google**:
+   - RSVP: seguir las instrucciones de [`google-apps-script/rsvp.gs`](google-apps-script/rsvp.gs) y pegar la URL `/exec` en `rsvp.scriptUrl`.
    - Fotos: seguir [SETUP-GOOGLE-DRIVE.md](SETUP-GOOGLE-DRIVE.md) y completar `photoUpload`.
-4. Probar con `npm run dev` y publicar.
+5. **Elegir la pareja** creando un archivo `.env.local` en la raíz con:
+   ```
+   COUPLE=nombre-de-la-pareja
+   ```
+   (sin ese archivo se usa `ejemplo`). Probar con `npm run dev`.
+6. **Publicar**: en Vercel o Netlify, un proyecto por pareja, con la variable de entorno `COUPLE`.
 
 ### Qué se puede configurar
 
 | Sección del config | Qué controla |
 |---|---|
-| `couple`, `pageTitle`, `date`, `locale` | Nombres, título de la pestaña, fecha y hora (de acá salen la cuenta regresiva y todas las fechas que se muestran) |
-| `theme` | Colores de la invitación |
-| `media` | Splash, hero (desktop y mobile), video de intro (opcional), fondos y galería |
-| `texts` | Textos de bienvenida, cita, historia y galería |
+| `couple`, `initials`, `pageTitle`, `date`, `locale` | Nombres, monograma, título de la pestaña, fecha y hora (de acá salen la cuenta regresiva y todas las fechas que se muestran) |
+| `theme` | Colores de la invitación (incluye un color de detalle, `accent`) |
+| `media` | Splash, hero (desktop y mobile), video de intro y música de fondo (opcionales), fondos y galería |
+| `texts` | Textos de bienvenida, cita con su fuente, título e historia, galería |
 | `schedule` | Horarios (recepción, ceremonia, fiesta...) |
 | `location` | Lugar, dirección y mapa de Google Maps |
-| `sections` | Prender o apagar precios, galería, dress code, regalos y subida de fotos |
-| `prices`, `dressCode`, `gifts` | Contenido de cada sección |
-| `rsvp` | Script del formulario, máximo de acompañantes, nota y WhatsApp |
+| `sections` | Prender o apagar hospedaje, precios, galería, dress code, regalos y subida de fotos |
+| `lodging`, `prices`, `dressCode`, `gifts` | Contenido de cada sección |
+| `rsvp` | Script del formulario, máximo de acompañantes, si se piden los nombres de cada acompañante, nota y WhatsApp |
 | `photoUpload` | Script de subida, carpeta de Drive y tamaño máximo por archivo |
 | `footer` | Links de Instagram |
 
@@ -47,22 +69,21 @@ npm run preview  # previsualizar el build
 ## Estructura
 
 ```
-├── public/                        Imágenes y video de la invitación
+├── couples/                       Una carpeta por pareja (config.ts + public/)
 ├── src/
-│   ├── config/
-│   │   ├── types.ts               Tipos documentados de la configuración
-│   │   └── wedding.ts             ← Datos de la invitación (lo único que se edita)
-│   ├── App.tsx                    App completa (lee todo del config)
+│   ├── config/types.ts            Tipos documentados de la configuración
+│   ├── App.tsx                    App completa (lee todo del config de la pareja)
 │   ├── main.tsx                   Punto de entrada
 │   └── style.css                  Tailwind + paleta base
-├── google-photos-upload-script.js Apps Script para subir fotos a Drive
-└── SETUP-GOOGLE-DRIVE.md          Guía de configuración de la subida de fotos
+├── google-apps-script/
+│   ├── rsvp.gs                    Guarda las confirmaciones en una Google Sheet
+│   └── fotos-drive.gs             Sube las fotos de los invitados a Drive
+├── SETUP-GOOGLE-DRIVE.md          Guía de configuración de la subida de fotos
+└── vite.config.ts                 Elige la pareja según COUPLE
 ```
 
 ## Pendientes conocidos
 
-- El script de Google Apps Script del RSVP todavía no está en el repo.
-- El RSVP se envía con `mode: "no-cors"`, así que la app no puede saber si el guardado falló.
 - `App.tsx` todavía es un solo archivo grande. El próximo paso es separarlo en componentes.
 
 ## Licencia

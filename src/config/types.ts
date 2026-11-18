@@ -31,6 +31,8 @@ export interface ScheduleItem {
 export interface WeddingConfig {
   /** Texto que se muestra como nombre de la pareja. Ej: "Flor & Juan" */
   couple: string;
+  /** Iniciales para el monograma del splash. Ej: "J & F". Opcional. */
+  initials?: string;
   /** Título de la pestaña del navegador */
   pageTitle: string;
   /**
@@ -54,6 +56,8 @@ export interface WeddingConfig {
     mist: string;
     /** Color de textos secundarios */
     muted: string;
+    /** Color de detalles: líneas divisorias, monograma, "Nos casamos" del hero */
+    accent: string;
   };
 
   /** Imágenes y video (rutas dentro de /public o URLs completas) */
@@ -63,6 +67,11 @@ export interface WeddingConfig {
     heroMobile: string;
     /** Video de intro. Si se deja vacío, se saltea la sección de video. */
     video?: string;
+    /**
+     * Música de fondo (mp3). Arranca cuando el invitado toca el splash (o al
+     * terminar el video, si hay). Aparece un botón para pausarla.
+     */
+    music?: string;
     dateTimeBackground: string;
     locationBackground: string;
     dressCodeBackground: string;
@@ -76,6 +85,10 @@ export interface WeddingConfig {
     intro: string[];
     /** Frase destacada (en cursiva) del segundo bloque. Opcional. */
     quote?: string;
+    /** Cita bíblica / autor de la frase. Ej: "Eclesiastés 4:12". Opcional. */
+    quoteSource?: string;
+    /** Título del segundo bloque. Opcional. */
+    storyTitle?: string;
     /** Líneas del segundo bloque de texto */
     story: string[];
     galleryTitle: string;
@@ -95,11 +108,18 @@ export interface WeddingConfig {
 
   /** Secciones que se pueden prender o apagar */
   sections: {
+    lodging: boolean;
     prices: boolean;
     gallery: boolean;
     dressCode: boolean;
     gifts: boolean;
     photoUpload: boolean;
+  };
+
+  /** Opciones de hospedaje para invitados que vienen de afuera */
+  lodging: {
+    intro: string;
+    options: { name: string; description?: string; url: string }[];
   };
 
   prices: {
@@ -127,6 +147,11 @@ export interface WeddingConfig {
     scriptUrl: string;
     /** Máximo de acompañantes que se ofrece en el formulario */
     maxCompanions: number;
+    /**
+     * Si es true, el formulario pide el nombre de cada acompañante
+     * (útil cuando se manda una sola invitación a toda una familia).
+     */
+    askCompanionNames: boolean;
     /** Nota al pie del formulario. Opcional. */
     note?: string;
     /** Contactos de WhatsApp que se muestran debajo de la nota. Opcional. */
