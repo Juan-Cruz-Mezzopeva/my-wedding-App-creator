@@ -299,7 +299,12 @@ export default function App(): React.JSX.Element {
   // Efecto para precargar recursos multimedia (imagen del splash + video si hay)
   useEffect(() => {
     let resourcesLoaded = 0;
-    const totalResources = hasVideo ? 2 : 1;
+    // Piezas del splash "carta": se precargan para que no aparezcan de a poco
+    const extraImages: string[] =
+      wedding.splashStyle === "carta"
+        ? Object.values(media.envelope ?? {}).filter((src): src is string => Boolean(src))
+        : [];
+    const totalResources = (hasVideo ? 2 : 1) + extraImages.length;
     let cancelled = false;
 
     const updateProgress = () => {
@@ -322,6 +327,14 @@ export default function App(): React.JSX.Element {
     };
     splashImage.src = media.splash;
 
+    const extraLoaders = extraImages.map((src) => {
+      const img = new Image();
+      img.onload = updateProgress;
+      img.onerror = updateProgress;
+      img.src = src;
+      return img;
+    });
+
     // Precargar video
     if (hasVideo) {
       const videoElement = document.createElement("video");
@@ -343,8 +356,12 @@ export default function App(): React.JSX.Element {
       cancelled = true;
       splashImage.onload = null;
       splashImage.onerror = null;
+      extraLoaders.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+      });
     };
-  }, [hasVideo, media.splash, media.video]);
+  }, [hasVideo, media.splash, media.video, media.envelope]);
 
   // ============================================
   // FUNCIONES
@@ -735,6 +752,7 @@ export default function App(): React.JSX.Element {
           subtitle={wedding.texts.splashSubtitle}
           dateText={`${dateTexts.day} de ${dateTexts.month}, ${dateTexts.year}`}
           sealColor={wedding.theme.primary}
+          art={media.envelope}
           onOpen={playMusic}
           onFinish={() => {
             setShowSplash(false);

@@ -28,6 +28,24 @@ export interface ScheduleItem {
   suffix?: string;
 }
 
+/** Imágenes del splash "carta" (PNG/WebP con fondo transparente) */
+export interface EnvelopeArt {
+  /** Mitad izquierda del sello (mismo tamaño de lienzo que la derecha) */
+  sealLeft?: string;
+  /** Mitad derecha del sello */
+  sealRight?: string;
+  /** Enredadera del costado izquierdo */
+  vineLeft?: string;
+  /** Enredadera del costado derecho (si falta, se espeja la izquierda) */
+  vineRight?: string;
+  /** Separador arriba de los nombres */
+  dividerTop?: string;
+  /** Separador debajo de los nombres (si falta, se repite el de arriba) */
+  dividerBottom?: string;
+  /** Separador sobre "Toca para continuar" */
+  dividerSmall?: string;
+}
+
 export interface WeddingConfig {
   /** Texto que se muestra como nombre de la pareja. Ej: "Flor & Juan" */
   couple: string;
@@ -83,6 +101,8 @@ export interface WeddingConfig {
     locationBackground: string;
     dressCodeBackground: string;
     gallery: string[];
+    /** Piezas del splash "carta" (solo si splashStyle es "carta") */
+    envelope?: EnvelopeArt;
   };
 
   texts: {
