@@ -44,6 +44,16 @@ const wedding: WeddingConfig = {
       "/galeria-3.webp",
       "/galeria-4.webp",
     ],
+    // Piezas de la pantalla de inicio con forma de carta
+    envelope: {
+      sealLeft: "/carta/sello-izquierda.webp",
+      sealRight: "/carta/sello-derecha.webp",
+      vineLeft: "/carta/enredadera-izquierda.webp",
+      vineRight: "/carta/enredadera-derecha.webp",
+      dividerTop: "/carta/separador-1.webp",
+      dividerBottom: "/carta/separador-2.webp",
+      dividerSmall: "/carta/separador-3.webp",
+    },
   },
 
   texts: {

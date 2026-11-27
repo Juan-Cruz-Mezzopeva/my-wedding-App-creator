@@ -8,12 +8,15 @@ import React, { useState } from "react";
 // sello de lacre con las iniciales. Al tocar: el sello se parte, la solapa se
 // abre hacia arriba y la carta se desvanece dejando ver la invitación.
 //
-// Todo está dibujado con SVG y CSS (no usa imágenes aparte de la foto), así
-// que se ve nítido en cualquier pantalla. Si más adelante hay PNG del sello o
-// de los adornos, se pueden reemplazar las piezas <WaxSeal>, <Vine> y
-// <Divider> sin tocar la animación.
+// Las piezas (sello partido en dos mitades, enredaderas y separadores) salen
+// de imágenes de la pareja (media.envelope en el config). Si alguna falta, se
+// usa una versión dibujada con SVG en su lugar.
+
+import type { EnvelopeArt } from "../config/types";
 
 interface EnvelopeSplashProps {
+  /** Imágenes del sello, enredaderas y separadores (media.envelope) */
+  art?: EnvelopeArt;
   /** Foto de fondo (media.splash) */
   photo: string;
   couple: string;
@@ -30,6 +33,9 @@ interface EnvelopeSplashProps {
 
 /** Duración total de la animación de apertura (ms) */
 const OPEN_DURATION = 2400;
+
+/** Sombra suave para que el dorado de las imágenes se despegue del fondo */
+const GOLD_SHADOW: React.CSSProperties = { filter: "drop-shadow(0 1px 1.5px rgba(40,25,5,0.45))" };
 
 const FLAP_PATH = "M0 0 H100 V64 L50 100 L0 64 Z";
 const FLAP_CLIP = "polygon(0 0, 100% 0, 100% 64%, 50% 100%, 0 64%)";
@@ -382,6 +388,7 @@ export default function EnvelopeSplash({
   subtitle,
   dateText,
   sealColor,
+  art = {},
   onOpen,
   onFinish,
 }: EnvelopeSplashProps): React.JSX.Element {
@@ -472,11 +479,20 @@ export default function EnvelopeSplash({
           />
 
           {/* Enredaderas */}
-          <div className="absolute left-[1%] top-[25%] bottom-[2%] flex items-stretch">
-            <Vine />
+          <div className="absolute left-[1%] top-[26%] bottom-[1.5%] flex items-stretch">
+            {art.vineLeft ? <img src={art.vineLeft} alt="" className="h-full w-auto" style={GOLD_SHADOW} /> : <Vine />}
           </div>
-          <div className="absolute right-[1%] top-[25%] bottom-[2%] flex items-stretch">
-            <Vine mirrored />
+          <div className="absolute right-[1%] top-[26%] bottom-[1.5%] flex items-stretch">
+            {art.vineRight || art.vineLeft ? (
+              <img
+                src={art.vineRight || art.vineLeft}
+                alt=""
+                className="h-full w-auto"
+                style={{ ...GOLD_SHADOW, transform: art.vineRight ? undefined : "scaleX(-1)" }}
+              />
+            ) : (
+              <Vine mirrored />
+            )}
           </div>
 
           {/* Textos */}
@@ -485,22 +501,34 @@ export default function EnvelopeSplash({
             style={{ color: "#141B2D", padding: "0 17cqw" }}
           >
             <div className="w-full flex flex-col items-center">
-              <div style={{ width: "92%" }}>
-                <Divider />
+              <div style={{ width: "100%" }}>
+                {art.dividerTop ? <img src={art.dividerTop} alt="" className="w-full h-auto" style={GOLD_SHADOW} /> : <Divider />}
               </div>
               <h1
                 className="leading-none whitespace-nowrap"
                 style={{
-                  fontFamily: "'Great Vibes', 'Playfair Display', serif",
-                  fontSize: "clamp(2.4rem, 15cqw, 6rem)",
+                  fontFamily: "'Pinyon Script', 'Great Vibes', serif",
+                  fontSize: "clamp(2.2rem, 13.5cqw, 5.5rem)",
                   margin: "3cqw 0 1cqw",
                   textShadow: "0 1px 0 rgba(255,255,255,0.6), 0 2px 8px rgba(239,230,213,0.9)",
                 }}
               >
-                {couple}
+                {/* El "&" de Pinyon Script es poco legible: va en otra letra */}
+                {couple.split("&").map((part, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && (
+                      <span style={{ fontFamily: "'Great Vibes', serif", fontSize: "0.9em", margin: "0 0.22em" }}>&amp;</span>
+                    )}
+                    {part.trim()}
+                  </React.Fragment>
+                ))}
               </h1>
-              <div style={{ width: "80%" }}>
-                <Divider />
+              <div style={{ width: "88%" }}>
+                {art.dividerBottom || art.dividerTop ? (
+                  <img src={art.dividerBottom || art.dividerTop} alt="" className="w-full h-auto" style={GOLD_SHADOW} />
+                ) : (
+                  <Divider />
+                )}
               </div>
             </div>
 
@@ -528,8 +556,8 @@ export default function EnvelopeSplash({
             </p>
 
             <div className="w-full flex flex-col items-center">
-              <div style={{ width: "88%" }}>
-                <Divider fleur={false} />
+              <div style={{ width: "100%" }}>
+                {art.dividerSmall ? <img src={art.dividerSmall} alt="" className="w-full h-auto" style={GOLD_SHADOW} /> : <Divider fleur={false} />}
               </div>
               <p
                 className="animate-pulse"
@@ -603,7 +631,27 @@ export default function EnvelopeSplash({
           className="absolute left-1/2"
           style={{ top: "20.5%", width: "50cqw", height: "50cqw", transform: "translate(-50%, -50%)", zIndex: 3 }}
         >
-          {!opening ? (
+          {art.sealLeft && art.sealRight ? (
+            // Sello en imágenes: las dos mitades encajan y forman el sello entero
+            <div className={`w-full h-full ${opening ? "" : "env-seal-idle"}`}>
+              {([
+                [art.sealLeft, -1],
+                [art.sealRight, 1],
+              ] as const).map(([src, side]) => (
+                <img
+                  key={side}
+                  src={src}
+                  alt=""
+                  className={`absolute inset-0 w-full h-full ${opening ? "env-seal-crack" : ""}`}
+                  style={{
+                    filter: "drop-shadow(0 8px 10px rgba(0,0,0,0.45))",
+                    ["--dx" as string]: `${side * 42}%`,
+                    ["--rot" as string]: `${side * 26}deg`,
+                  }}
+                />
+              ))}
+            </div>
+          ) : !opening ? (
             <div className="env-seal-idle w-full h-full">
               <WaxSeal initials={monogram} />
             </div>
