@@ -69,3 +69,24 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Splash "carta": el sello respira suavemente mientras espera el toque */
+@keyframes env-seal-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+.env-seal-idle {
+  animation: env-seal-breathe 2.6s ease-in-out infinite;
+}
+/* Las mitades del sello se separan y caen */
+@keyframes env-seal-crack {
+  0% { transform: none; opacity: 1; }
+  15% { transform: scale(1.04); opacity: 1; }
+  100% { transform: translate(var(--dx), 35%) rotate(var(--rot)); opacity: 0; }
+}
+.env-seal-crack {
+  animation: env-seal-crack 0.9s cubic-bezier(.4,.1,.6,1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .env-seal-idle { animation: none; }
+}
