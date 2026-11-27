@@ -31,12 +31,17 @@ const wedding: WeddingConfig = {
     heroDesktop: "/hero-desktop.webp",
     heroMobile: "/hero-mobile.webp",
     video: "",
-    // PENDIENTE: canción elegida por los novios (mp3 en public/)
-    music: "",
+    // Música de fondo
+    music: "/musica-fondo.mp3",
     dateTimeBackground: "/fondo-fecha.webp",
     locationBackground: "/fondo-ubicacion.webp",
     dressCodeBackground: "/fondo-dress-code.webp",
-    gallery: [],
+    gallery: [
+      "/galeria-1.webp",
+      "/galeria-2.webp",
+      "/galeria-3.webp",
+      "/galeria-4.webp",
+    ],
   },
 
   texts: {
@@ -111,7 +116,7 @@ const wedding: WeddingConfig = {
       {
         title: "Niños de 2 a 12 años",
         // PENDIENTE: en la info vino "$ 58", falta el monto completo
-        items: [{ label: "Tarjeta", price: "$58.---" }],
+        items: [{ label: "Tarjeta", price: "$58.000" }],
       },
     ],
     notes: [
@@ -120,11 +125,12 @@ const wedding: WeddingConfig = {
     // PENDIENTE: CVU, banco y titular
     payment: {
       alias: "JyF-NuestraBoda",
-      cvu: "-------",
-      bank: "-------",
-      holder: "-------",
+      cvu: "4530000800015824136378",
+      bank: "Naranja x",
+      holder: "Flavia del Valle Avila",
     },
-    paymentNote: "Por favor, verificar los datos antes de realizar la transferencia",
+    paymentNote:
+      "Por favor, verificar los datos antes de realizar la transferencia",
   },
 
   dressCode: {
@@ -140,16 +146,17 @@ const wedding: WeddingConfig = {
     // PENDIENTE: confirmar si los regalos van a la misma cuenta que las tarjetas
     transfer: {
       alias: "JyF-NuestraBoda",
-      cvu: "-------",
-      bank: "-------",
-      holder: "-------",
+      cvu: "4530000800015824136378",
+      bank: "Naranja x",
+      holder: "Flavia del Valle Avila",
     },
     listUrl: "",
   },
 
   rsvp: {
     // PENDIENTE: URL /exec del Apps Script de RSVP de esta pareja
-    scriptUrl: "",
+    scriptUrl:
+      "https://script.google.com/macros/s/AKfycbySsABBhqnMePtpbJueKYc5o94CchwOmPMDtpKlpTEBhIhJeWhXEE_wbwqQnb7jTdwD/exec",
     // Una sola invitación por familia: puede confirmar por todos con sus nombres
     maxCompanions: 8,
     askCompanionNames: true,

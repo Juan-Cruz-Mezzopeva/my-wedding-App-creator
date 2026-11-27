@@ -373,16 +373,20 @@ export default function App(): React.JSX.Element {
 
   const handleSplashClick = (): void => {
     setFadeOut(true);
-    // Si hay video, la música espera a que termine (para no superponerse)
-    if (!hasVideo) playMusic();
+    // Reproducir música inmediatamente al hacer clic en el splash
+    playMusic();
     setTimeout(() => {
       setShowSplash(false);
+      // Si no hay video, marcar como terminado inmediatamente para mostrar la invitación
+      if (!hasVideo) {
+        setVideoEnded(true);
+      }
     }, 800); // Espera a que termine la animación
   };
 
   const handleVideoEnd = (): void => {
     setVideoEnded(true);
-    playMusic();
+    // No llamar playMusic() aquí ya que la música ya está reproduciéndose
   };
 
   const openRSVPModal = (): void => {
@@ -761,7 +765,7 @@ export default function App(): React.JSX.Element {
       {/* ============================================ */}
       {/* SECCIÓN DE VIDEO */}
       {/* ============================================ */}
-      {!showSplash && !videoEnded && (
+      {hasVideo && !showSplash && !videoEnded && (
         <div
           className="fixed inset-0 z-50 bg-cover bg-center"
           style={{ backgroundImage: `url('${HERO_BACKGROUND_IMAGE}')` }}
@@ -1671,16 +1675,16 @@ export default function App(): React.JSX.Element {
       {media.music && (
         <>
           <audio ref={audioRef} src={media.music} loop preload="auto" />
-          {!showSplash && videoEnded && (
+          {!showSplash && (
             <button
               onClick={toggleMusic}
               aria-label={musicPlaying ? "Pausar música" : "Reproducir música"}
-              className="fixed bottom-5 left-5 z-[90] w-12 h-12 rounded-full bg-warm-taupe/90 hover:bg-dark-espresso text-white shadow-lg flex items-center justify-center transition-all hover:scale-110"
+              className="fixed bottom-6 right-6 z-[90] w-14 h-14 rounded-full bg-warm-taupe/90 hover:bg-dark-espresso text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
             >
               {musicPlaying ? (
-                <Music className="w-5 h-5 animate-pulse" />
+                <Music className="w-6 h-6 animate-pulse" />
               ) : (
-                <VolumeX className="w-5 h-5" />
+                <VolumeX className="w-6 h-6" />
               )}
             </button>
           )}
