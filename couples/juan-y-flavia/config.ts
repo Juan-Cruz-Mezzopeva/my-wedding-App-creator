@@ -12,6 +12,8 @@ const wedding: WeddingConfig = {
   // PENDIENTE: confirmar hora de inicio (por ahora 19:00, según el audio)
   date: "2027-10-09T19:00:00-03:00",
   locale: "es-AR",
+  // Pantalla de inicio con forma de carta y sello (pedido de los novios)
+  splashStyle: "carta",
 
   // Colores elegidos por los novios: blanco, marfil, azul, dorado y bordó,
   // con un estilo "de noche".

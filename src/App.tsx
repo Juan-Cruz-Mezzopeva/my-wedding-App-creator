@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import wedding from "@couple";
 import type { BankData } from "./config/types";
+import EnvelopeSplash from "./components/EnvelopeSplash";
 
 // ============================================
 // TIPOS E INTERFACES
@@ -726,7 +727,22 @@ export default function App(): React.JSX.Element {
       {/* ============================================ */}
       {/* SPLASH SCREEN - Pantalla de Bienvenida */}
       {/* ============================================ */}
-      {!isLoading && showSplash && (
+      {!isLoading && showSplash && wedding.splashStyle === "carta" && (
+        <EnvelopeSplash
+          photo={media.splash}
+          couple={novios}
+          initials={wedding.initials}
+          subtitle={wedding.texts.splashSubtitle}
+          dateText={`${dateTexts.day} de ${dateTexts.month}, ${dateTexts.year}`}
+          sealColor={wedding.theme.primary}
+          onOpen={playMusic}
+          onFinish={() => {
+            setShowSplash(false);
+            if (!hasVideo) setVideoEnded(true);
+          }}
+        />
+      )}
+      {!isLoading && showSplash && wedding.splashStyle !== "carta" && (
         <div
           onClick={handleSplashClick}
           className={`fixed inset-0 z-[100] bg-dark-espresso bg-cover bg-center flex items-center justify-center cursor-pointer transition-opacity duration-800 ${

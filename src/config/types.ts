@@ -43,6 +43,13 @@ export interface WeddingConfig {
   date: string;
   /** Idioma/región para formatear fechas. Ej: "es-AR" */
   locale: string;
+  /**
+   * Diseño de la pantalla de inicio:
+   * - "clasico" (por defecto): foto oscurecida con los nombres encima
+   * - "carta": sobre con solapa, sello de lacre con las iniciales y
+   *   enredaderas doradas; al tocar, el sello se parte y la carta se abre
+   */
+  splashStyle?: "clasico" | "carta";
 
   /** Colores de la invitación (se aplican sobre la paleta de Tailwind) */
   theme: {
